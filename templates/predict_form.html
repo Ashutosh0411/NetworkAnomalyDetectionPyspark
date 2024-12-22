@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Anomaly Detection</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;   
+            margin: 0 auto;
+            padding: 20px;
+            background-image: url(../static/bg2.jpg);
+            /* background-color: #f4f4f4; */
+            /* background: linear-gradient(135deg, #f4f4f4 0%, #e9e9e9 100%); */
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            font-weight: 700;
+            text-shadow: 2px 2px rgba(0, 0, 0, 0.1);
+        }
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s;
+        }
+        form:hover {
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        input, select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        button {
+            background-color: #3498db;
+            color: #fff;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 4px #2980b9;
+        }
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f5e9;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .loading {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <h1>Network Anomaly Detection</h1>
+    <form id="prediction-form">
+        <label for="duration">Duration:</label>
+        <input type="number" id="duration" name="duration" required>
+
+        <label for="protocol">Protocol:</label>
+        <select id="protocol" name="protocol" required>
+            <option value="tcp">TCP</option>
+            <option value="udp">UDP</option>
+            <option value="icmp">ICMP</option>
+        </select>
+
+        <label for="sport">Source Port:</label>
+        <input type="number" id="sport" name="sport" required>
+
+        <label for="dport">Destination Port:</label>
+        <input type="number" id="dport" name="dport" required>
+
+        <label for="state">State:</label>
+        <select id="state" name="state" required>
+            <option value="CON">CON</option>
+            <option value="S_RA">S_RA</option>
+            <option value="SR_A">SR_A</option>
+            <option value="SR_SA">SR_SA</option>
+            <option value="PA_">PA_</option>
+        </select>
+
+        <label for="totpkts">Total Packets:</label>
+        <input type="number" id="totpkts" name="totpkts" step="0.01" required>
+
+        <label for="totbytes">Total Bytes:</label>
+        <input type="number" id="totbytes" name="totbytes" step="0.01" required>
+
+        <label for="srcbytes">Source Bytes:</label>
+        <input type="number" id="srcbytes" name="srcbytes" step="0.01" required>
+
+        <button type="submit">Predict Anomaly</button>
+    </form>
+
+    <div id="result" class="result"></div>
+    <div id="loading" class="loading">Loading...</div>
+
+    <script>
+        document.getElementById('prediction-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Show loading indicator
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+
+            fetch('/predict', {
+                method: 'POST',
+                body: new FormData(this)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading indicator
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('result').style.display = 'block';
+
+                if (data.error) {
+                    document.getElementById('result').innerHTML = `Error: ${data.error}`;
+                    document.getElementById('result').classList.add('error');
+                } else {
+                    const prediction = data.result === 1 ? 'Anomaly' : 'Normal';
+                    document.getElementById('result').innerHTML = `Prediction: ${prediction}`;
+                    document.getElementById('result').classList.remove('error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('result').innerHTML = 'An error occurred while making the prediction.';
+                document.getElementById('result').classList.add('error');
+            });
+        });
+    </script>
+</body>
+</html>
