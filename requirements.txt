@@ -1,4 +1,6 @@
 Flask
 pyspark
-Gunicorn
+gunicorn
 numpy
+scikit-learn
+pandas
